@@ -1,75 +1,98 @@
-# This workflow will do a clean installation of node dependencies, cache/restore them, build the source code and run tests across different versions of node
-
-
-name: Node.js CI
+name: Deploy to AWS
 
 on:
   push:
-    branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
+    branches: [main]
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
 
     strategy:
       matrix:
         node-version: [18.x]
 
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Create env file
+        run: echo "DATABASE_URL=${{ secrets.DATABASE_URL }}" > .env
+
+      - name: Zip files
+        run: zip -r CI.zip ./src/* ./prisma/* ./scripts ./appspec.yml ./package.json ./package-lock.json ./.env ./Dockerfile ./deploy.sh
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_PRIVATE_ACCESS_KEY }}
+          aws-region: ap-northeast-2
+
+      - name: Upload to S3
+        run: aws s3 cp --region ap-northeast-2 ./CI.zip s3://mydockercicid2/deploy/
+
+  build_and_push_docker:
+    needs: build
+    runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v3
-    - name: Use Node.js ${{ matrix.node-version }}
-      uses: actions/setup-node@v3
-      with:
-        node-version: ${{ matrix.node-version }}
-        cache: 'npm'
-    - run: npm ci
+      - name: Checkout code
+        uses: actions/checkout@v3
 
-    - name: Check npm -v
-      run: npm -v
+      - name: Build and push Docker image
+        run: |
+          echo "$MY_SSH_KEY" > mydockercicd.pem
+          chmod 400 mydockercicd.pem
+          mkdir -p ~/.ssh
+          ssh-keyscan -H 3.34.113.25 >> ~/.ssh/known_hosts
+          docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
+          bash deploy.sh
+        env:
+          MY_SSH_KEY: ${{ secrets.MY_SSH_KEY }}
+          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+          DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
 
-    - name: create env file
-      working-directory: ./
-      run: |
-        pwd
-        touch .env
-        echo DATABASE_URL=${{ secrets.DATABASE_URL }} >> .env
-        cat .env
+  deploy_to_aws:
+    needs: build_and_push_docker
+    runs-on: ubuntu-latest
 
+    steps:
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_PRIVATE_ACCESS_KEY }}
+          aws-region: ap-northeast-2
 
-    - name: zip file
-      run: zip -r CI.zip ./src/* ./prisma/* ./scripts ./appspec.yml ./package.json ./package-lock.json ./.env ./Dockerfile ./deploy.sh
+      - name: Deploy with AWS CodeDeploy
+        run: |
+          aws deploy create-deployment \
+            --application-name dockerapp \
+            --deployment-config-name CodeDeployDefault.OneAtATime \
+            --deployment-group-name my-docker-deploy-group \
+            --s3-location bucket=mydockercicid2,bundleType=zip,key=deploy/CI.zip
 
-    - name: AWS configure credentials
-      uses: aws-actions/configure-aws-credentials@v1
-      with:
-        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        aws-secret-access-key: ${{ secrets.AWS_PRIVATE_ACCESS_KEY }}
-        aws-region: ap-northeast-2
+  update_nginx:
+    needs: deploy_to_aws
+    runs-on: ubuntu-latest
 
-    - name: upload to S3
-      run: aws s3 cp --region ap-northeast-2 ./CI.zip s3://mydockercicid2/deploy/
-
-    - name: Build and push Docker image
-      run: bash deploy.sh
-
-    - name: deploy with AWS codeDeploy
-      run: aws deploy create-deployment
-        --application-name dockerapp
-        --deployment-config-name CodeDeployDefault.OneAtATime
-        --deployment-group-name my-docker-deploy-group
-        --s3-location bucket=mydockercicid2,bundleType=zip,key=deploy/CI.zip
-
-    - name: Update Nginx server
-      run: |
-        echo "$MY_SSH_KEY" > mydockercicd.pem
-        chmod 400 mydockercicd.pem
-        mkdir -p ~/.ssh
-        ssh-keyscan -H 3.34.113.25 >> ~/.ssh/known_hosts
-        ssh -i "mydockercicd.pem" ubuntu@3.34.113.25 'bash /home/ubuntu/finalCICD/deploy.sh'
-      env:
-        MY_SSH_KEY: ${{ secrets.MY_SSH_KEY }}
-        DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+    steps:
+      - name: Update Nginx server
+        run: |
+          echo "$MY_SSH_KEY" > mydockercicd.pem
+          chmod 400 mydockercicd.pem
+          mkdir -p ~/.ssh
+          ssh-keyscan -H 3.34.113.25 >> ~/.ssh/known_hosts
+          ssh -i "mydockercicd.pem" ubuntu@3.34.113.25 'bash /home/ubuntu/finalCICD/deploy.sh'
+        env:
+          MY_SSH_KEY: ${{ secrets.MY_SSH_KEY }}
