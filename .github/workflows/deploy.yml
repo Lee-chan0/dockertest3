@@ -67,6 +67,7 @@ jobs:
       run: |
         echo "$MY_SSH_KEY" > mydockercicd.pem
         chmod 400 mydockercicd.pem
+        ssh-keyscan -H 3.34.113.25 >> ~/.ssh/known_hosts
         ssh -i "mydockercicd.pem" ubuntu@3.34.113.25 'bash /home/ubuntu/finalCICD/deploy.sh'
       env:
         MY_SSH_KEY: ${{ secrets.MY_SSH_KEY }}
