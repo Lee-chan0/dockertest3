@@ -25,8 +25,13 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Create env file
-        run: echo "DATABASE_URL=${{ secrets.DATABASE_URL }}" > .env
+      - name: create env file
+        working-directory: ./
+        run: |
+          pwd
+          touch .env
+          echo DATABASE_URL=${{ secrets.DATABASE_URL }} >> .env
+          cat .env
 
       - name: Zip files
         run: zip -r CI.zip ./src/* ./prisma/* ./scripts ./appspec.yml ./package.json ./package-lock.json ./.env ./Dockerfile ./deploy.sh
