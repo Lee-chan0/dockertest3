@@ -4,8 +4,6 @@
 DOCKER_USERNAME=leechan0
 IMAGE_NAME=$DOCKER_USERNAME/app
 
-
-
 # Docker 이미지 빌드
 docker build -t $IMAGE_NAME .
 
@@ -14,6 +12,9 @@ echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
 
 # Docker 이미지 푸시
 docker push $IMAGE_NAME
+
+# Docker 컨테이너 실행 (예시)
+docker run -d -p 3000:3000 $IMAGE_NAME
 
 # Nginx 서버 업데이트 및 재시작
 sudo service nginx restart
