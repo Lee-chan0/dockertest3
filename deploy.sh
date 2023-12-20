@@ -4,9 +4,7 @@
 DOCKER_USERNAME=leechan0
 IMAGE_NAME=$DOCKER_USERNAME/app
 
-# Docker 설치
-sudo apt-get update
-sudo apt-get install -y docker.io
+
 
 # Docker 이미지 빌드
 docker build -t $IMAGE_NAME .
