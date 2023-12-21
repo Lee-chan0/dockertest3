@@ -90,7 +90,7 @@ jobs:
   update_nginx:
     needs: deploy_to_aws
     runs-on: ubuntu-latest
-
+          
     steps:
       - name: Update Nginx server
         run: |
@@ -98,6 +98,8 @@ jobs:
           chmod 400 mydockercicd.pem
           mkdir -p ~/.ssh
           ssh-keyscan -H 3.34.113.25 >> ~/.ssh/known_hosts
-          ssh -i "mydockercicd.pem" ubuntu@3.34.113.25 'bash /home/ubuntu/finalCICD/deploy.sh'
+            
+          # Nginx 설정 파일 업데이트 (예시: nginx.conf)
+          ssh -i "mydockercicd.pem" ubuntu@3.34.113.25 'sudo sed -i "s/backend-blue/backend-green/" /etc/nginx/nginx.conf && sudo service nginx restart'
         env:
           MY_SSH_KEY: ${{ secrets.MY_SSH_KEY }}
