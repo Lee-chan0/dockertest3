@@ -1,9 +1,13 @@
 FROM node:18
 
-WORKDIR /home/ubuntu/finalCICD
+WORKDIR /app
+
+COPY package*.json ./
+
+RUN npm install
 
 COPY . .
 
-RUN npm ci
+EXPOSE 3000
 
-CMD [ "node","src/app.js"]
+CMD [ "node", "src/app.js" ]
