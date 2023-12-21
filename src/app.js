@@ -1,7 +1,10 @@
 import express from 'express';
 import userRouter from './routes/users.js';
+import {v4 as uuidv4} from 'uuid';
 
 const app = express();
+let id = uuidv4();
+const PORT = 3000;
 
 app.use('/', [userRouter]);
 app.use(express.json());
@@ -9,9 +12,9 @@ app.use(express.json());
 
 
 app.get('/', (req, res) => {
-    res.send('Welcome Docker with Express!!');
+    res.send(id);
 });
 
-app.listen(3000, () => {
+app.listen(PORT, () => {
     console.log('Server is Open');
 });
