@@ -7,7 +7,7 @@ services:
     volumes:
       - ./nginx.conf:/etc/nginx/nginx.conf
   blue:
-    image: myapp:blue_v1
+    build: .
     environment:
       - NODE_ENV=production
   green:
