@@ -79,6 +79,6 @@ jobs:
           chmod +x scripts/stop_blue.sh
           scripts/deploy_green.sh
           scripts/switch_to_green.sh
-          docker-compose up -d nginx # Ensure Nginx is running
+          docker-compose up -d nginx
           scripts/stop_blue.sh
         fi
