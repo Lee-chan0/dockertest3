@@ -1,2 +1,2 @@
 #!/bin/bash
-docker-compose up -d --build blue
+docker-compose up -d --build green
