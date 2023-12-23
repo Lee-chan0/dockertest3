@@ -7,10 +7,10 @@ services:
     volumes:
       - ./nginx.conf:/etc/nginx/nginx.conf
   blue:
-    image: myapp:blue_$GITHUB_SHA
+    build: .
     environment:
       - NODE_ENV=production
   green:
-    image: myapp:green_$GITHUB_SHA
+    build: .
     environment:
       - NODE_ENV=production

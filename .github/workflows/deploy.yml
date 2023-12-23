@@ -1,4 +1,4 @@
-name: Node.js CI/CD with Blue/Green Deployment
+name: Node.js CI
 
 on:
   push:
@@ -7,40 +7,39 @@ on:
     branches: [ "main" ]
 
 jobs:
-  build-and-deploy:
+  build:
+
     runs-on: ubuntu-latest
+
     strategy:
       matrix:
         node-version: [18.x]
 
+
     steps:
     - uses: actions/checkout@v3
-
-    # Node.js 설정
     - name: Use Node.js ${{ matrix.node-version }}
       uses: actions/setup-node@v3
       with:
         node-version: ${{ matrix.node-version }}
         cache: 'npm'
-
-    # NPM Install
     - run: npm ci
 
-    # Check npm version
-    - name: Check npm version
+    - name: Check npm -v
       run: npm -v
 
-    # Create .env file
-    - name: Create env file
+    - name: create env file
+      working-directory: ./
       run: |
+        pwd
         touch .env
         echo DATABASE_URL=${{ secrets.DATABASE_URL }} >> .env
+        cat .env
 
-    # Zip the project files
-    - name: Zip file
+
+    - name: zip file
       run: zip -r DC.zip ./src/* ./prisma/* ./scripts/* ./appspec.yml ./package.json ./package-lock.json ./.env ./deploy.sh ./docker-compose.yml ./Dockerfile ./nginx.conf
 
-    # AWS Configure Credentials
     - name: AWS configure credentials
       uses: aws-actions/configure-aws-credentials@v1
       with:
@@ -48,37 +47,13 @@ jobs:
         aws-secret-access-key: ${{ secrets.AWS_PRIVATE_ACCESS_KEY }}
         aws-region: ap-northeast-2
 
-    # Upload to S3
-    - name: Upload to S3
+    - name: upload to S3
       run: aws s3 cp --region ap-northeast-2 ./DC.zip s3://mydockercicid2/deploy/
 
-    # Deploy with AWS CodeDeploy
-    - name: Deploy with AWS CodeDeploy
-      run: aws deploy create-deployment --application-name dockerapp --deployment-config-name CodeDeployDefault.OneAtATime --deployment-group-name my-docker-deploy-group --s3-location bucket=mydockercicid2,bundleType=zip,key=deploy/DC.zip
 
-    # Docker Build for Blue and Green
-    - name: Build Docker Images for Blue and Green
-      run: |
-        docker build -t myapp:blue_$GITHUB_SHA .
-        docker build -t myapp:green_$GITHUB_SHA .
-
-    # Decide which container to deploy and switch traffic
-    - name: Deploy Containers and Switch Traffic
-      run: |
-        if [ condition_for_blue ]; then
-          chmod +x scripts/deploy_blue.sh
-          chmod +x scripts/switch_to_blue.sh
-          chmod +x scripts/stop_green.sh
-          scripts/deploy_blue.sh
-          scripts/switch_to_blue.sh
-          docker-compose up -d nginx 
-          scripts/stop_green.sh
-        else
-          chmod +x scripts/deploy_green.sh
-          chmod +x scripts/switch_to_green.sh
-          chmod +x scripts/stop_blue.sh
-          scripts/deploy_green.sh
-          scripts/switch_to_green.sh
-          docker-compose up -d nginx
-          scripts/stop_blue.sh
-        fi
+    - name: deploy with AWS codeDeploy
+      run: aws deploy create-deployment
+        --application-name dockerapp
+        --deployment-config-name CodeDeployDefault.OneAtATime
+        --deployment-group-name my-docker-deploy-group
+        --s3-location bucket=mydockercicid2,bundleType=zip,key=deploy/DC.zip
