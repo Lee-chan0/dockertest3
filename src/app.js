@@ -12,7 +12,7 @@ app.use(express.json());
 
 
 app.get('/', (req, res) => {
-    res.send('고유한 서버 ID : ', id);
+    res.send(id);
 });
 
 app.listen(PORT, () => {
