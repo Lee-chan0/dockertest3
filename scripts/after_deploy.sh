@@ -1,9 +1,7 @@
-REPOSITORY=/home/ubuntu/firstCICD
+REPOSITORY=/home/ubuntu/finalCICD
 
 cd $REPOSITORY
 
-sudo npm install -g
-
-sudo npm install
+sudo npm ci
 
 npm start

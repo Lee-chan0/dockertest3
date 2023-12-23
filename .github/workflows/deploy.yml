@@ -38,7 +38,7 @@ jobs:
 
 
     - name: zip file
-      run: zip -r CI.zip ./src/* ./prisma/* ./scripts/* ./appspec.yml ./package.json ./package-lock.json ./.env
+      run: zip -r DC.zip ./src/* ./prisma/* ./scripts/* ./appspec.yml ./package.json ./package-lock.json ./.env
 
     - name: AWS configure credentials
       uses: aws-actions/configure-aws-credentials@v1
@@ -48,7 +48,7 @@ jobs:
         aws-region: ap-northeast-2
 
     - name: upload to S3
-      run: aws s3 cp --region ap-northeast-2 ./CI.zip s3://mydockercicid2/deploy/
+      run: aws s3 cp --region ap-northeast-2 ./DC.zip s3://mydockercicid2/deploy/
 
 
     - name: deploy with AWS codeDeploy
@@ -56,4 +56,4 @@ jobs:
         --application-name dockerapp
         --deployment-config-name CodeDeployDefault.OneAtATime
         --deployment-group-name my-docker-deploy-group
-        --s3-location bucket=mydockercicid2,bundleType=zip,key=deploy/CI.zip
+        --s3-location bucket=mydockercicid2,bundleType=zip,key=deploy/DC.zip
