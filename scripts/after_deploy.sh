@@ -1,7 +1,5 @@
-REPOSITORY=/home/ubuntu/finalCICD
+REPOSITORY=/home/ubuntu/finalCICD2
 
 sudo npm install
 
 sudo npm ci
-
-node src/app.js

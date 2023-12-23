@@ -38,7 +38,7 @@ jobs:
 
 
     - name: zip file
-      run: zip -r CI.zip ./src/* ./prisma/* ./scripts ./appspec.yml ./package.json ./package-lock.json ./.env ./.prettier.json
+      run: zip -r CI.zip ./src/* ./prisma/* ./scripts/* ./appspec.yml ./package.json ./package-lock.json ./.env
 
     - name: AWS configure credentials
       uses: aws-actions/configure-aws-credentials@v1
