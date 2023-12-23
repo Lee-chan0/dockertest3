@@ -19,6 +19,32 @@ if [ "$CURRENT" == "blue" ]; then
     # Blue 컨테이너를 중단합니다.
     docker-compose stop blue
 
+    # 헬스 체크를 수행하여 Green 컨테이너가 정상적으로 동작하는지 확인합니다.
+    HEALTH_CHECK_URL="http://3.34.113.25/health"
+    HEALTH_CHECK_INTERVAL=5  # 초 단위로 설정
+    HEALTH_CHECK_TIMEOUT=3   # 초 단위로 설정
+    HEALTH_CHECK_RETRIES=3  # 재시도 횟수
+
+    echo "Performing health check for Green container..."
+    health_check() {
+        local retries=0
+        until [ $retries -ge $HEALTH_CHECK_RETRIES ]
+        do
+            curl --connect-timeout $HEALTH_CHECK_TIMEOUT --max-time $HEALTH_CHECK_TIMEOUT -f $HEALTH_CHECK_URL && break
+            retries=$((retries+1))
+            echo "Health check failed. Retrying..."
+            sleep $HEALTH_CHECK_INTERVAL
+        done
+        if [ $retries -ge $HEALTH_CHECK_RETRIES ]; then
+            echo "Health check failed after $HEALTH_CHECK_RETRIES retries. Rolling back..."
+            # 롤백 로직 추가
+            exit 1
+        fi
+        echo "Health check passed. Switching traffic to Green container."
+    }
+
+    health_check
+
 # Green 컨테이너가 실행 중일 경우, Blue를 배포
 elif [ "$CURRENT" == "green" ]; then
     # Blue 컨테이너를 빌드하고 실행합니다.
@@ -32,4 +58,30 @@ elif [ "$CURRENT" == "green" ]; then
 
     # Green 컨테이너를 중단합니다.
     docker-compose stop green
+
+    # 헬스 체크를 수행하여 Blue 컨테이너가 정상적으로 동작하는지 확인합니다.
+    HEALTH_CHECK_URL="http://3.34.113.25/health"
+    HEALTH_CHECK_INTERVAL=5  # 초 단위로 설정
+    HEALTH_CHECK_TIMEOUT=3   # 초 단위로 설정
+    HEALTH_CHECK_RETRIES=3  # 재시도 횟수
+
+    echo "Performing health check for Blue container..."
+    health_check() {
+        local retries=0
+        until [ $retries -ge $HEALTH_CHECK_RETRIES ]
+        do
+            curl --connect-timeout $HEALTH_CHECK_TIMEOUT --max-time $HEALTH_CHECK_TIMEOUT -f $HEALTH_CHECK_URL && break
+            retries=$((retries+1))
+            echo "Health check failed. Retrying..."
+            sleep $HEALTH_CHECK_INTERVAL
+        done
+        if [ $retries -ge $HEALTH_CHECK_RETRIES ]; then
+            echo "Health check failed after $HEALTH_CHECK_RETRIES retries. Rolling back..."
+            # 롤백 로직 추가
+            exit 1
+        fi
+        echo "Health check passed. Switching traffic to Blue container."
+    }
+
+    health_check
 fi
