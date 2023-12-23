@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # 현재 실행 중인 컨테이너 확인 (blue 또는 green)
-CURRENT=$(docker-compose ps | grep -E 'blue|green' | head -n 1 | awk '{print $3}' | cut -d'-' -f2)
+CURRENT=$(docker ps --format '{{.Names}}' | grep -E 'finalcicd-(blue|green)-[0-9]+' | head -n 1 | cut -d'-' -f2)
 
 echo "Current container: $CURRENT"
 
