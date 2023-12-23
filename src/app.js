@@ -11,7 +11,7 @@ app.use(express.json());
 
 
 app.get('/', (req, res) => {
-    res.send('green is back!!!!!!!!!!');
+    res.send('Im BLUE');
 });
 
 app.listen(PORT, () => {
