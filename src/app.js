@@ -12,7 +12,7 @@ app.use(express.json());
 
 
 app.get('/', (req, res) => {
-    res.send('Hello - docker (green container)');
+    res.send('Hello - docker (blue container)');
 });
 
 app.listen(PORT, () => {
