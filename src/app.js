@@ -11,7 +11,7 @@ app.use(express.json());
 
 
 app.get('/', (req, res) => {
-    res.send('Oh my godisdsdsdsdsdsd');
+    res.send('please ~~~~~~~~~');
 });
 
 app.listen(PORT, () => {
