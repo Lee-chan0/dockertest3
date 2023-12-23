@@ -1,7 +1,9 @@
 #!/bin/bash
 
 # 현재 실행 중인 컨테이너 확인 (blue 또는 green)
-CURRENT=$(docker-compose ps | grep 'Up' | cut -d' ' -f 1)
+CURRENT=$(docker-compose ps | grep -E 'blue|green' | awk '{print $3}' | cut -d'-' -f2)
+
+echo "Current container: $CURRENT"
 
 # Blue 컨테이너가 실행 중일 경우, Green을 배포
 if [ "$CURRENT" == "blue" ]; then
