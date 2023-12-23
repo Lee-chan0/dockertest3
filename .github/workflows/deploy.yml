@@ -38,7 +38,7 @@ jobs:
 
 
     - name: zip file
-      run: zip -r DC.zip ./src/* ./prisma/* ./scripts/* ./appspec.yml ./package.json ./package-lock.json ./.env
+      run: zip -r DC.zip ./src/* ./prisma/* ./scripts/* ./appspec.yml ./package.json ./package-lock.json ./.env ./deploy.sh ./docker-compose.yml ./Dockerfile
 
     - name: AWS configure credentials
       uses: aws-actions/configure-aws-credentials@v1
