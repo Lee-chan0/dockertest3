@@ -56,17 +56,26 @@ jobs:
     - name: Deploy with AWS CodeDeploy
       run: aws deploy create-deployment --application-name dockerapp --deployment-config-name CodeDeployDefault.OneAtATime --deployment-group-name my-docker-deploy-group --s3-location bucket=mydockercicid2,bundleType=zip,key=deploy/DC.zip
 
-    # Docker Build and Deploy
-    - name: Build and Deploy Docker Containers
+    # Docker Build for Blue and Green
+    - name: Build Docker Images for Blue and Green
       run: |
         docker build -t myapp:blue_$GITHUB_SHA .
         docker build -t myapp:green_$GITHUB_SHA .
-        # Decide whether to deploy blue or green based on some condition
+
+    # Decide which container to deploy and switch traffic
+    - name: Deploy Containers and Switch Traffic
+      run: |
         if [ condition_for_blue ]; then
+          chmod +x scripts/deploy_blue.sh
+          chmod +x scripts/switch_to_blue.sh
+          chmod +x scripts/stop_green.sh
           scripts/deploy_blue.sh
           scripts/switch_to_blue.sh
           scripts/stop_green.sh
         else
+          chmod +x scripts/deploy_green.sh
+          chmod +x scripts/switch_to_green.sh
+          chmod +x scripts/stop_blue.sh
           scripts/deploy_green.sh
           scripts/switch_to_green.sh
           scripts/stop_blue.sh
