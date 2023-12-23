@@ -12,7 +12,7 @@ app.use(express.json());
 
 
 app.get('/', (req, res) => {
-    res.send(id);
+    res.send('Hello - docker');
 });
 
 app.listen(PORT, () => {
