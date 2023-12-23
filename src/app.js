@@ -11,7 +11,7 @@ app.use(express.json());
 
 
 app.get('/', (req, res) => {
-    res.send('Hello docker !! ');
+    res.send('Hello docker blue !! ');
 });
 
 app.listen(PORT, () => {
