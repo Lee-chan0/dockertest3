@@ -4,13 +4,29 @@ services:
     image: nginx:latest
     ports:
       - "80:80"
+      - "443:443"
     volumes:
-      - ./nginx.conf:/etc/nginx/nginx.conf
+      - ./nginx.conf:/etc/nginx/nginx.conf  # 수정된 nginx.conf 사용
+      - /etc/letsencrypt:/etc/letsencrypt  # SSL 인증서 경로 마운트
+    depends_on:
+      - blue
+      - green
+    networks:
+      - webnet
+
   blue:
     build: .
     environment:
       - NODE_ENV=production
+    networks:
+      - webnet
+
   green:
     build: .
     environment:
       - NODE_ENV=production
+    networks:
+      - webnet
+
+networks:
+  webnet:
